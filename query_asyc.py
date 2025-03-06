@@ -12,7 +12,7 @@ from ollama import AsyncClient  # Import the async client from Ollama
 from get_embedding_function import get_embedding_function
 
 CHROMA_PATH = "chroma"
-MODEL = "deepseek-r1:1.5b"
+MODEL = "llama3.2"
 
 PROMPT_TEMPLATE = """
 Here is some context that can help you provide information to the question
@@ -21,7 +21,7 @@ Here is some context that can help you provide information to the question
 
 ---
 
-Answer the question considering the above context, if need be: {question}
+Knowing that only the context is true, lead the human to the legitimate information about his question considering the above context. : {question}
 """
 
 async def main():
@@ -40,7 +40,7 @@ async def query_rag(query_text: str):
 
     # Timer for the embedding phase.
     start_embedding = time.perf_counter()
-    results = await asyncio.to_thread(db.similarity_search_with_score, query_text, k=3)
+    results = await asyncio.to_thread(db.similarity_search_with_score, query_text, k=4)
     embedding_time = time.perf_counter() - start_embedding
     print(f"Embedding phase took: {embedding_time:.2f} seconds\n")
 
@@ -51,6 +51,8 @@ async def query_rag(query_text: str):
 
     # Prepare the message list for Ollama.
     messages = [{"role": "user", "content": prompt}]
+
+    print(prompt)
 
     # Initialize the async client.
     client = AsyncClient()
