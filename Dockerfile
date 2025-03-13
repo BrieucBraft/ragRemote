@@ -28,6 +28,8 @@ ollama serve & \
 sleep 5 && \
 ollama pull gemma3:1b & \
 sleep 10 && \
+ollama pull nomic-embed-text & \
+sleep 10 && \
 uvicorn main:app --host 0.0.0.0 --port $PORT\n' > /app/start.sh
 
 RUN chmod +x /app/start.sh
