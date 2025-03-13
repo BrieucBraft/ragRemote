@@ -2,8 +2,8 @@ import sys
 if sys.platform.startswith('win'):
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from flask import Flask
-import argparse
+
+from flask import Flask, request, jsonify
 import asyncio
 import time
 from langchain_chroma import Chroma
@@ -13,12 +13,6 @@ from ollama import AsyncClient  # Import the async client from Ollama
 from get_embedding_function import get_embedding_function
 
 app = Flask(__name__)
-
-# @app.route("/")
-# def run_script():
-#     return "Hello from Cloud Run!"
-
-
 
 CHROMA_PATH = "chroma"
 MODEL = "gemma3"
@@ -30,20 +24,29 @@ Here is some context that can help you provide information to the question
 
 ---
 
-Knowing that only the context is true, lead the human to the legitimate information about his question considering the above context. : {question}
+Knowing that only the context is true, lead the human to the legitimate information about his question considering the above context: {question}
 """
 
-@app.route("/")
-async def main():
-    # Parse CLI arguments.
-    parser = argparse.ArgumentParser()
-    parser.add_argument("query_text", type=str, help="The query text.")
-    args = parser.parse_args()
-    query_text = args.query_text
+@app.route("/", methods=["GET"])
+def home():
+    return "Hello from Cloud Run!"
 
-    await query_rag(query_text)
+@app.route("/query", methods=["POST"])
+def query():
+    """Flask route to accept a POST request with JSON input."""
+    data = request.get_json()
+    query_text = data.get("query_text", "")
+
+    if not query_text:
+        return jsonify({"error": "query_text parameter is required"}), 400
+
+    # Run async function inside a sync function
+    response_text = asyncio.run(query_rag(query_text))
+
+    return jsonify({"response": response_text})
 
 async def query_rag(query_text: str):
+    """Asynchronous function to process the query using RAG + Ollama."""
     # Prepare the vector database.
     embedding_function = get_embedding_function()
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
@@ -87,8 +90,5 @@ async def query_rag(query_text: str):
 
     return response_text
 
-# if __name__ == "__main__":
-#     asyncio.run(main())
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8085)
+    app.run(host="0.0.0.0", port=8080)
