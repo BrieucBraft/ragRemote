@@ -17,7 +17,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 CHROMA_PATH = "chroma"
-MODEL = "gemma3"
+MODEL = "gemma3:1b"
 
 PROMPT_TEMPLATE = """
 Here is some context that can help you provide information to the question
