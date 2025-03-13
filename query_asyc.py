@@ -12,7 +12,7 @@ from ollama import AsyncClient  # Import the async client from Ollama
 from get_embedding_function import get_embedding_function
 
 CHROMA_PATH = "chroma"
-MODEL = "llama3.2"
+MODEL = "gemma3:1b"
 
 PROMPT_TEMPLATE = """
 Here is some context that can help you provide information to the question
@@ -40,7 +40,7 @@ async def query_rag(query_text: str):
 
     # Timer for the embedding phase.
     start_embedding = time.perf_counter()
-    results = await asyncio.to_thread(db.similarity_search_with_score, query_text, k=4)
+    results = await asyncio.to_thread(db.similarity_search_with_score, query_text, k=3)
     embedding_time = time.perf_counter() - start_embedding
     print(f"Embedding phase took: {embedding_time:.2f} seconds\n")
 
