@@ -2,7 +2,7 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install necessary dependencies for Ollama
+# Install necessary dependencies
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
@@ -13,26 +13,26 @@ RUN apt-get update && apt-get install -y \
 # Install Ollama
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
-# Copy your application code
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the application code
 COPY . .
 
-# The port Cloud Run will use
+# Expose the correct port for Cloud Run
 ENV PORT 8080
 
-# Create a startup script to run Ollama and your application
+# Create a startup script to ensure Ollama is running before launching FastAPI
 RUN echo '#!/bin/bash\n\
-ollama serve & \
-sleep 5 && \
-ollama pull gemma3:1b & \
-sleep 10 && \
-ollama pull nomic-embed-text & \
-sleep 10 && \
-uvicorn main:app --host 0.0.0.0 --port $PORT\n' > /app/start.sh
+ollama serve &\n\
+sleep 10  # Allow Ollama to start\n\
+ollama pull gemma3:1b\n\
+ollama pull nomic-embed-text\n\
+uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1\n' > /app/start.sh
 
+# Make the script executable
 RUN chmod +x /app/start.sh
 
-# Use the startup script as the entrypoint
+# Use the script as the entrypoint
 CMD ["/app/start.sh"]
