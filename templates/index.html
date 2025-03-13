@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Query</title>
+    <script>
+        async function queryLLM() {
+            const queryText = document.getElementById("queryInput").value;
+            if (!queryText) {
+                alert("Please enter a query.");
+                return;
+            }
+
+            const responseStream = await fetch("/query", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ query_text: queryText })
+            });
+
+            const reader = responseStream.body.getReader();
+            const decoder = new TextDecoder();
+            const streamContainer = document.getElementById("responseContainer");
+
+            streamContainer.innerHTML = "";  // Clear previous response
+
+            let done = false;
+            while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+                const text = decoder.decode(value, { stream: true });
+                streamContainer.innerHTML += text;  // Append new content to response container
+                streamContainer.scrollTop = streamContainer.scrollHeight;  // Auto scroll to the bottom
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Real-Time LLM Query</h1>
+    <div>
+        <label for="queryInput">Enter your question:</label>
+        <input type="text" id="queryInput" placeholder="Ask a question...">
+        <button onclick="queryLLM()">Submit</button>
+    </div>
+
+    <h2>Response:</h2>
+    <div id="responseContainer" style="white-space: pre-wrap; height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+        <!-- The response will be streamed here -->
+    </div>
+</body>
+</html>
