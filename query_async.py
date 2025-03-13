@@ -12,7 +12,7 @@ from ollama import AsyncClient  # Import the async client from Ollama
 from get_embedding_function import get_embedding_function
 
 CHROMA_PATH = "chroma"
-MODEL = "gemma3:1b"
+MODEL = "gemma3"
 
 PROMPT_TEMPLATE = """
 Here is some context that can help you provide information to the question
