@@ -2,6 +2,7 @@ import sys
 if sys.platform.startswith('win'):
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+from flask import Flask
 import argparse
 import asyncio
 import time
@@ -10,6 +11,14 @@ from langchain.prompts import ChatPromptTemplate
 from ollama import AsyncClient  # Import the async client from Ollama
 
 from get_embedding_function import get_embedding_function
+
+app = Flask(__name__)
+
+# @app.route("/")
+# def run_script():
+#     return "Hello from Cloud Run!"
+
+
 
 CHROMA_PATH = "chroma"
 MODEL = "gemma3"
@@ -24,6 +33,7 @@ Here is some context that can help you provide information to the question
 Knowing that only the context is true, lead the human to the legitimate information about his question considering the above context. : {question}
 """
 
+@app.route("/")
 async def main():
     # Parse CLI arguments.
     parser = argparse.ArgumentParser()
@@ -77,5 +87,8 @@ async def query_rag(query_text: str):
 
     return response_text
 
+# if __name__ == "__main__":
+#     asyncio.run(main())
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    app.run(host="0.0.0.0", port=8085)
