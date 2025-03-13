@@ -29,6 +29,24 @@ Here is some context that can help you provide information to the question
 Knowing that only the context is true, lead the human to the legitimate information about his question considering the above context: {question}
 """
 
+# Wait for Ollama to be ready
+@app.on_event("startup")
+async def startup_event():
+    print("Waiting for Ollama to be ready...")
+    client = AsyncClient(host="http://localhost:11434")
+    max_retries = 10
+    for i in range(max_retries):
+        try:
+            models = await client.list()
+            print(f"Ollama is ready. Available models: {models}")
+            break
+        except Exception as e:
+            print(f"Ollama not ready yet. Retry {i+1}/{max_retries}. Error: {e}")
+            if i == max_retries - 1:
+                print("Failed to connect to Ollama after maximum retries.")
+            else:
+                time.sleep(5)
+
 @app.get("/")
 async def home(request: Request):
     # Return some basic information or a simple response
