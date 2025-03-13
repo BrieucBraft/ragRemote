@@ -3,7 +3,7 @@ if sys.platform.startswith('win'):
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string
 import asyncio
 import time
 from langchain_chroma import Chroma
@@ -15,7 +15,7 @@ from get_embedding_function import get_embedding_function
 app = Flask(__name__)
 
 CHROMA_PATH = "chroma"
-MODEL = "gemma3"
+MODEL = "gemma3:1b"
 
 PROMPT_TEMPLATE = """
 Here is some context that can help you provide information to the question
@@ -27,9 +27,22 @@ Here is some context that can help you provide information to the question
 Knowing that only the context is true, lead the human to the legitimate information about his question considering the above context: {question}
 """
 
+# Global variable to store the LLM response
+llm_response = ""
+
 @app.route("/", methods=["GET"])
 def home():
-    return "Hello from Cloud Run!"
+    global llm_response
+    return render_template_string('''
+        <html>
+            <head><title>Cloud Run</title></head>
+            <body>
+                <h1>Hello from Cloud Run!</h1>
+                <h2>LLM Response:</h2>
+                <p>{{ response }}</p>
+            </body>
+        </html>
+    ''', response=llm_response)
 
 @app.route("/query", methods=["POST"])
 def query():
@@ -42,6 +55,9 @@ def query():
 
     # Run async function inside a sync function
     response_text = asyncio.run(query_rag(query_text))
+
+    global llm_response
+    llm_response = response_text
 
     return jsonify({"response": response_text})
 
