@@ -1,6 +1,6 @@
 import sys
+import asyncio
 if sys.platform.startswith('win'):
-    import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from fastapi import FastAPI, Request, HTTPException
