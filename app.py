@@ -68,11 +68,6 @@ async def startup_event():
                 print("Failed to connect to Ollama after maximum retries.")
             else:
                 time.sleep(5)
-async def load_chroma():
-    global db
-    embedding_function = get_embedding_function()
-    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
-    print("ChromaDB loaded and ready!")
 
 @app.get("/")
 async def home(request: Request):
@@ -93,13 +88,9 @@ async def query(request: Request):
 
 async def query_rag(query_text: str):
     """Asynchronous function to process the query using RAG + Ollama."""
-    # Prepare the vector database.
-    # embedding_function = get_embedding_function()
-    # db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
-
-    global db
-    if not db:
-        raise HTTPException(status_code=500, detail="ChromaDB not initialized.")
+    #Prepare the vector database.
+    embedding_function = get_embedding_function()
+    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
     # Timer for the embedding phase.
     start_embedding = time.perf_counter()
