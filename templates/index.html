@@ -4,76 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Query</title>
-    <script>
-        async function queryLLM() {
-            const queryText = document.getElementById("queryInput").value;
-            if (!queryText) {
-                alert("Please enter a query.");
-                return;
-            }
-
-            const responseStream = await fetch("/query", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ query_text: queryText })
-            });
-
-            const reader = responseStream.body.getReader();
-            const decoder = new TextDecoder();
-            const streamContainer = document.getElementById("responseContainer");
-
-            streamContainer.innerHTML = "";  // Clear previous response
-
-            let done = false;
-            while (!done) {
-                const { value, done: doneReading } = await reader.read();
-                done = doneReading;
-                const text = decoder.decode(value, { stream: true });
-                streamContainer.innerHTML += text;  // Append new content to response container
-                streamContainer.scrollTop = streamContainer.scrollHeight;  // Auto scroll to the bottom
-            }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
-
-        async function uploadPDF() {
-            const fileInput = document.getElementById("pdfUpload");
-            const file = fileInput.files[0];
-            if (!file) {
-                alert("Please select a PDF file.");
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const response = await fetch("/upload_pdf", {
-                method: "POST",
-                body: formData
-            });
-
-            const result = await response.json();
-            alert(result.message);
+        .input-container {
+            margin-bottom: 20px;
         }
-    </script>
+        #queryInput {
+            width: 70%;
+            padding: 8px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #responseContainer {
+            white-space: pre-wrap;
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        #statusMessage {
+            color: #ff6600;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .upload-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+    </style>
 </head>
 <body>
     <h1>Real-Time LLM Query</h1>
-    <div>
+    <div class="input-container">
         <label for="queryInput">Enter your question:</label>
         <input type="text" id="queryInput" placeholder="Ask a question...">
-        <button onclick="queryLLM()">Submit</button>
+        <button id="submitButton" onclick="queryLLM()">Submit</button>
+        <p id="statusMessage"></p>
     </div>
 
     <h2>Response:</h2>
-    <div id="responseContainer" style="white-space: pre-wrap; height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+    <div id="responseContainer">
         <!-- The response will be streamed here -->
     </div>
 
-    <h2>Upload a PDF:</h2>
-    <input type="file" id="pdfUpload" accept="application/pdf">
-    <button onclick="uploadPDF()">Upload</button>
+    <div class="upload-section">
+        <h2>Upload a PDF:</h2>
+        <input type="file" id="pdfUpload" accept="application/pdf">
+        <button onclick="uploadPDF()">Upload</button>
+    </div>
+
+    <script src="/static/script.js"></script>
 </body>
 </html>
-
-

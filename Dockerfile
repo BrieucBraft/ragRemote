@@ -41,7 +41,7 @@ RUN echo '#!/bin/bash\n\
 # Start Ollama server in background\n\
 ollama serve &\n\
 # Wait for Ollama server to be ready\n\
-MAX_RETRIES=30\n\
+MAX_RETRIES=10\n\
 COUNT=0\n\
 echo "Waiting for Ollama server to start..."\n\
 while ! curl -s http://localhost:11434/api/tags >/dev/null 2>&1 && [ $COUNT -lt $MAX_RETRIES ]; do\n\
