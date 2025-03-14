@@ -29,7 +29,6 @@ Here is some context that can help you provide information to the question
 Knowing that only the context is true, lead the human to the legitimate information about his question considering the above context: {question}
 """
 
-# Wait for Ollama to be ready
 @app.on_event("startup")
 async def startup_event():
     print("Waiting for Ollama to be ready...")
@@ -37,8 +36,14 @@ async def startup_event():
     max_retries = 10
     for i in range(max_retries):
         try:
-            models = await client.list()
-            print(f"Ollama is ready. Available models: {models}")
+            # Just check if Ollama service is responsive
+            response = await client.health()
+            print(f"Ollama service is ready.")
+            
+            # Log the model paths we'll be using
+            print(f"Using model files from:")
+            print(f"  - Gemma3: /root/.ollama/models/gemma3")
+            print(f"  - Nomic Embed: /root/.ollama/models/nomic-embed-text")
             break
         except Exception as e:
             print(f"Ollama not ready yet. Retry {i+1}/{max_retries}. Error: {e}")
@@ -86,14 +91,18 @@ async def query_rag(query_text: str):
 
     print(prompt)
 
-    # Initialize the async client.
-    client = AsyncClient()
 
     # Timer for the LLM response phase.
     start_llm = time.perf_counter()
     
-    # Get the response stream
-    response = await client.chat(model=MODEL, messages=messages, stream=True)
+    # In your query_rag function
+    client = AsyncClient(host="http://localhost:11434")
+    response = await client.chat(
+        model=MODEL, 
+        messages=messages, 
+        stream=True,
+        options={"model_path": "/root/.ollama/models/gemma3"}  # Specify the path here
+    )
     
     # Process each chunk
     async for chunk in response:

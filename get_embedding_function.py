@@ -3,11 +3,9 @@ from langchain_ollama import OllamaEmbeddings
 #from langchain_community.embeddings import BedrockEmbeddings
 
 def get_embedding_function():
-    # embeddings = BedrockEmbeddings(
-    #     credentials_profile_name="default", region_name="us-east-1"
-    # )
-    #embeddings = OllamaEmbeddings(model="granite-embedding:30m", base_url="http://localhost:11434")  # adjust if necessary)
-    
-    embeddings = OllamaEmbeddings(model="nomic-embed-text")
-    #embeddings = OllamaEmbeddings(model='mxbai-embed-large')
-    return embeddings
+    # Specify the path to the model file
+    return OllamaEmbeddings(
+        model="nomic-embed-text",
+        base_url="http://localhost:11434",
+        model_path="/root/.ollama/models/nomic-embed-text"  # Specify the path here
+    )
