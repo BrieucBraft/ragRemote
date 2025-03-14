@@ -27,7 +27,7 @@ ENV PORT 8080
 RUN echo '#!/bin/bash\n\
 ollama serve &\n\
 sleep 10  # Allow Ollama to start\n\
-ollama pull gemma3:1b\n\
+ollama pull gemma3\n\
 ollama pull nomic-embed-text\n\
 uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1\n' > /app/start.sh
 
