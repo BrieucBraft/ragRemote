@@ -9,6 +9,8 @@ from langchain_chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
 from ollama import AsyncClient  # Import the async client from Ollama
 from fastapi.templating import Jinja2Templates
+from fastapi import UploadFile, File, BackgroundTasks
+import os
 
 from get_embedding_function import get_embedding_function
 import time
@@ -29,6 +31,26 @@ Here is some context that can help you provide information to the question
 Knowing that only the context is true, lead the human to the legitimate information about his question considering the above context: {question}
 """
 
+DATA_PATH = "data"
+
+@app.post("/upload_pdf")
+async def upload_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    """Accepts PDF uploads and processes them asynchronously."""
+    file_path = os.path.join(DATA_PATH, file.filename)
+
+    # Save file to disk
+    with open(file_path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    # Process the uploaded file in the background
+    background_tasks.add_task(populate_chroma)
+
+    return {"message": f"{file.filename} uploaded successfully. Processing in the background."}
+
+async def populate_chroma():
+    """Runs the PDF processing script in the background to avoid blocking requests."""
+    os.system("python pop_data.py")
+
 # Wait for Ollama to be ready
 @app.on_event("startup")
 async def startup_event():
@@ -46,6 +68,11 @@ async def startup_event():
                 print("Failed to connect to Ollama after maximum retries.")
             else:
                 time.sleep(5)
+async def load_chroma():
+    global db
+    embedding_function = get_embedding_function()
+    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+    print("ChromaDB loaded and ready!")
 
 @app.get("/")
 async def home(request: Request):
@@ -67,8 +94,12 @@ async def query(request: Request):
 async def query_rag(query_text: str):
     """Asynchronous function to process the query using RAG + Ollama."""
     # Prepare the vector database.
-    embedding_function = get_embedding_function()
-    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+    # embedding_function = get_embedding_function()
+    # db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+
+    global db
+    if not db:
+        raise HTTPException(status_code=500, detail="ChromaDB not initialized.")
 
     # Timer for the embedding phase.
     start_embedding = time.perf_counter()

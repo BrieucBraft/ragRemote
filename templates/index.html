@@ -35,6 +35,26 @@
                 streamContainer.scrollTop = streamContainer.scrollHeight;  // Auto scroll to the bottom
             }
         }
+
+        async function uploadPDF() {
+            const fileInput = document.getElementById("pdfUpload");
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select a PDF file.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch("/upload_pdf", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+            alert(result.message);
+        }
     </script>
 </head>
 <body>
@@ -49,5 +69,11 @@
     <div id="responseContainer" style="white-space: pre-wrap; height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
         <!-- The response will be streamed here -->
     </div>
+
+    <h2>Upload a PDF:</h2>
+    <input type="file" id="pdfUpload" accept="application/pdf">
+    <button onclick="uploadPDF()">Upload</button>
 </body>
 </html>
+
+

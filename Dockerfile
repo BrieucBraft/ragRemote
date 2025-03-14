@@ -23,13 +23,18 @@ COPY . .
 # Expose the correct port for Cloud Run
 ENV PORT 8080
 
+# Pull the required models during the build process
+RUN ollama pull gemma3 && ollama pull nomic-embed-text
+
+
 # Create a startup script to ensure Ollama is running before launching FastAPI
 RUN echo '#!/bin/bash\n\
+# Start Ollama server in background\n\
 ollama serve &\n\
-sleep 10  # Allow Ollama to start\n\
-ollama pull gemma3\n\
-ollama pull nomic-embed-text\n\
-uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1\n' > /app/start.sh
+# Wait for Ollama to be fully up (you may want to fine-tune this)\n\
+sleep 10\n\
+# Run FastAPI with Uvicorn\n\
+uvicorn main:app --host 0.0.0.0 --port $PORT --workers 17\n' > /app/start.sh
 
 # Make the script executable
 RUN chmod +x /app/start.sh
