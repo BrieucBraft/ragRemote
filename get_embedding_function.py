@@ -6,6 +6,5 @@ def get_embedding_function():
     # Specify the path to the model file
     return OllamaEmbeddings(
         model="nomic-embed-text",
-        base_url="http://localhost:11434",
-        model_path="/root/.ollama/models/nomic-embed-text"  # Specify the path here
+        base_url="http://localhost:11434"
     )

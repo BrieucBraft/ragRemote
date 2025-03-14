@@ -36,14 +36,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Ensure Ollama uses the correct home directory
-ENV OLLAMA_HOME=/root/.ollama
+# Set a custom directory for Ollama models
+ENV OLLAMA_MODELS=./models
 
-# Download models from Cloud Storage
-RUN mkdir -p /root/.ollama/models && \
-    gsutil cp gs://ollama-models-ragbraft/gemma3 /root/.ollama/models/gemma3 && \
-    gsutil cp gs://ollama-models-ragbraft/nomic-embed-text /root/.ollama/models/nomic-embed-text && \
-    chown -R root:root /root/.ollama
+# Download models from Cloud Storage to the custom directory
+RUN mkdir -p $OLLAMA_MODELS && \
+    gsutil cp gs://ollama-models-ragbraft/gemma3 $OLLAMA_MODELS/gemma3 && \
+    gsutil cp gs://ollama-models-ragbraft/nomic-embed-text $OLLAMA_MODELS/nomic-embed-text && \
+    chown -R root:root $OLLAMA_MODELS
 
 # Expose the correct port for Cloud Run
 ENV PORT 8080
