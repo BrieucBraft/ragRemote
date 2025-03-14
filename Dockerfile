@@ -29,12 +29,12 @@ ENV PORT 8080
 RUN mkdir -p /root/.ollama/models
 
 # Pull models during build using a background server with proper cleanup
-RUN nohup bash -c "ollama serve &" && \
+RUN bash -c "ollama serve & SERVER_PID=\$! && \
     sleep 10 && \
     ollama pull gemma3 && \
     ollama pull nomic-embed-text && \
-    pkill -f "ollama serve" && \
-    sleep 2
+    kill \$SERVER_PID && \
+    sleep 2"
 
 # Create a startup script to ensure Ollama is running before launching FastAPI
 RUN echo '#!/bin/bash\n\
@@ -44,7 +44,7 @@ ollama serve &\n\
 MAX_RETRIES=30\n\
 COUNT=0\n\
 echo "Waiting for Ollama server to start..."\n\
-while ! curl -s http://localhost:11434/api/tags >/dev/null && [ $COUNT -lt $MAX_RETRIES ]; do\n\
+while ! curl -s http://localhost:11434/api/tags >/dev/null 2>&1 && [ $COUNT -lt $MAX_RETRIES ]; do\n\
   sleep 1\n\
   COUNT=$((COUNT+1))\n\
   echo "Attempt $COUNT/$MAX_RETRIES - Waiting for Ollama server..."\n\
