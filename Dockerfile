@@ -1,10 +1,10 @@
-# Use the official Ollama Docker image as the base image
-FROM ollama/ollama:latest
+# Use python slim as the base image
+FROM python:3.9-slim
 
 # Set the working directory
 WORKDIR /app
 
-# Install necessary dependencies using apt (Debian-based)
+# Install necessary dependencies
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
@@ -12,23 +12,26 @@ RUN apt-get update && apt-get install -y \
     wget \
     lsb-release \
     apt-transport-https \
-    python3-pip
+    git
 
 # Install the Google Cloud SDK
 RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
     apt-get update && apt-get install -y google-cloud-sdk
 
+# Install Ollama
+RUN curl -fsSL https://ollama.com/install.sh | sh
+
 # Verify gcloud installation
 RUN gcloud --version
 
-# Set the default project (replace with your project ID)
+# Set the default project
 ENV GOOGLE_CLOUD_PROJECT=ragbraft
 RUN gcloud config set project $GOOGLE_CLOUD_PROJECT
 
 # Install Python dependencies
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
