@@ -7,8 +7,10 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
     gnupg \
+    wget \
     lsb-release \
-    && rm -rf /var/lib/apt/lists/*
+    apt-transport-https \
+    git
 
 # Install Ollama
 RUN curl -fsSL https://ollama.com/install.sh | sh
