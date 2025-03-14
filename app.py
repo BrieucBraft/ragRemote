@@ -164,7 +164,7 @@ async def query_rag(query_text: str, client_ip: str):
             results = await asyncio.to_thread(
                 db.similarity_search_with_score, 
                 query_text, 
-                k=3
+                k=1
             )
             
         embedding_time = time.perf_counter() - start_embedding
