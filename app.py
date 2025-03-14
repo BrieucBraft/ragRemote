@@ -23,7 +23,7 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 CHROMA_PATH = "chroma"
-MODEL = "gemma3"
+MODEL = "llama3.2"
 DATA_PATH = "data"
 
 # Initialize embedding function once at startup
