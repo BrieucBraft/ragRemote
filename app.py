@@ -23,7 +23,7 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 CHROMA_PATH = "chroma"
-MODEL = "llama3.2"
+MODEL = "llama3.2:1b"
 DATA_PATH = "data"
 
 # Initialize embedding function once at startup
@@ -164,7 +164,7 @@ async def query_rag(query_text: str, client_ip: str):
             results = await asyncio.to_thread(
                 db.similarity_search_with_score, 
                 query_text, 
-                k=1
+                k=2
             )
             
         embedding_time = time.perf_counter() - start_embedding
@@ -185,7 +185,8 @@ async def query_rag(query_text: str, client_ip: str):
         start_llm = time.perf_counter()
         
         # Get the response stream
-        response = await client.chat(model=MODEL, messages=messages, stream=True)
+        response = await client.chat(model=MODEL, messages=messages, stream=True, options={'temperature': 0.0})  # Adjust temperature here)
+
         
         # Process each chunk
         async for chunk in response:
