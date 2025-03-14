@@ -4,20 +4,20 @@ FROM ollama/ollama:latest
 # Set the working directory
 WORKDIR /app
 
-# Install necessary dependencies
-RUN apk update && apk add --no-cache \
+# Install necessary dependencies using apt (Debian-based)
+RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
     gnupg \
     wget \
     lsb-release \
     apt-transport-https \
-    py3-pip
+    python3-pip
 
 # Install the Google Cloud SDK
 RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list > /dev/null && \
-    apk update && apk add --no-cache google-cloud-cli
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    apt-get update && apt-get install -y google-cloud-sdk
 
 # Verify gcloud installation
 RUN gcloud --version
@@ -28,7 +28,7 @@ RUN gcloud config set project $GOOGLE_CLOUD_PROJECT
 
 # Install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
