@@ -23,7 +23,7 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 CHROMA_PATH = "chroma"
-MODEL = "llama3.2:3b-instruct-q3_K_S"
+MODEL = "llama3.2:3b-instruct-q2_K"
 DATA_PATH = "data"
 
 # Initialize embedding function once at startup
@@ -44,7 +44,7 @@ Here is some context that can help you provide information to the question
 
 ---
 
-Knowing that only the context is true, lead the human to the legitimate information about his question considering the above context: {question}
+Based on the context, give in the shortest response as possible, an answer to this question : {question}
 """
 
 # Dependency to get client IP
@@ -178,6 +178,12 @@ async def query_rag(query_text: str, client_ip: str):
         # Prepare the message list for Ollama.
         messages = [{"role": "user", "content": prompt}]
 
+        yield "Sources:\n"
+        for i, (doc, score) in enumerate(results):
+            source = doc.metadata.get("source", "Unknown")
+            page = doc.metadata.get("page", "N/A")
+            yield f"[{i+1}] {source} (Page: {page}, Score: {score:.2f})\n"
+
         # Initialize the async client.
         client = AsyncClient()
 
@@ -185,20 +191,17 @@ async def query_rag(query_text: str, client_ip: str):
         start_llm = time.perf_counter()
         
         # Get the response stream
-        response = await client.chat(model=MODEL, messages=messages, stream=True, options={'temperature': 0.5})  # Adjust temperature here)
+        response = await client.chat(model=MODEL, messages=messages, stream=True, options={'temperature': 0.1})  # Adjust temperature here)
 
         
         # Process each chunk
+        yield "\n\n---\n\n"
         async for chunk in response:
             content = chunk["message"]["content"]
             print(content, end="", flush=True)
             yield content
 
-        yield "\n\n---\n\nSources:\n"
-        for i, (doc, score) in enumerate(results):
-            source = doc.metadata.get("source", "Unknown")
-            page = doc.metadata.get("page", "N/A")
-            yield f"[{i+1}] {source} (Page: {page}, Score: {score:.2f})\n"
+
         
         llm_time = time.perf_counter() - start_llm
         print(f"\nLLM response took: {llm_time:.2f} seconds\n")

@@ -31,7 +31,7 @@ RUN mkdir -p /root/.ollama/models
 # Pull models during build using a background server with proper cleanup
 RUN bash -c "ollama serve & SERVER_PID=\$! && \
     sleep 10 && \
-    ollama pull llama3.2:3b-instruct-q3_K_S && \
+    ollama pull llama3.2:3b-instruct-q2_K && \
     ollama pull nomic-embed-text && \
     kill \$SERVER_PID && \
     sleep 2"
